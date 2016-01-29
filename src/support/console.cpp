@@ -282,7 +282,7 @@ public:
 
 	SecureArray readSecure(int bytes = -1)
 	{
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 		return mycall(worker, "readSecure", QVariantList() << bytes).value<SecureArray>();
 #else
 		return qVariantValue<SecureArray>(mycall(worker, "readSecure", QVariantList() << bytes));

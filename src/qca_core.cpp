@@ -32,7 +32,7 @@
 
 #include <QMutex>
 #include <QSettings>
-#include <QVariantMap>
+#include <QtCore/qvariant.h>
 #include <QWaitCondition>
 #include <QDir>
 

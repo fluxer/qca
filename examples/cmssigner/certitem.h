@@ -22,8 +22,8 @@
 #ifndef CERTITEM_H
 #define CERTITEM_H
 
-#include <QAbstractListModel>
-#include <QSharedDataPointer>
+#include <QtCore/qabstractitemmodel.h>
+#include <QtCore/qshareddata.h>
 
 class QString;
 class QStringList;

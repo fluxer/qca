@@ -18,8 +18,8 @@
  *
  */
 #include <QtCrypto>
-#include <QTime>
-#include <QtPlugin>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qplugin.h>
 
 #include <qstringlist.h>
 

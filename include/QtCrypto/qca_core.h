@@ -37,7 +37,7 @@
 #include <QStringList>
 #include <QList>
 #include <QSharedData>
-#include <QSharedDataPointer>
+#include <QtCore/qshareddata.h>
 #include "qca_export.h"
 #include "qca_support.h"
 #include "qca_tools.h"

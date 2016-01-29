@@ -23,7 +23,7 @@
 #include <QtCrypto>
 
 #include <QDebug>
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 #include <QStringList>
 
 

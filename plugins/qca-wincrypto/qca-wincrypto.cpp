@@ -15,7 +15,7 @@
  */
 
 #include <QtCrypto>
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 
 #include <qstringlist.h>
 

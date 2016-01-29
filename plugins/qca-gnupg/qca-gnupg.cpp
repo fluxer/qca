@@ -20,7 +20,7 @@
 #include "myopenpgpcontext.h"
 #include "mykeystorelist.h"
 #include "qcaprovider.h"
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 
 using namespace gpgQCAPlugin;
 

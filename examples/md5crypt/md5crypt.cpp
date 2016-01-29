@@ -27,7 +27,7 @@
 
 #include <QtCrypto>
 #include <QCoreApplication>
-#include <QtDebug>
+#include <QtCore/qdebug.h>
 #include <stdio.h>
 
 #ifdef QT_STATICPLUGIN

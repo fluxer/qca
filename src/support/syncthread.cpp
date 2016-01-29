@@ -21,8 +21,8 @@
 #include "qca_support.h"
 
 #include <QEventLoop>
-#include <QMetaMethod>
-#include <QMutexLocker>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qmutex.h>
 #include <QWaitCondition>
 
 namespace QCA {

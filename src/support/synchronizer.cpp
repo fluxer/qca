@@ -26,7 +26,7 @@
 #include <QEvent>
 #include <QMutex>
 #include <QPair>
-#include <QTime>
+#include <QtCore/qdatetime.h>
 #include <QWaitCondition>
 
 //#define TIMERFIXER_DEBUG

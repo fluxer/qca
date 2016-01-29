@@ -19,7 +19,7 @@
 #include "mykeystorelist.h"
 #include "utils.h"
 #include "mypgpkeycontext.h"
-#include <QMutexLocker>
+#include <QtCore/qmutex.h>
 #include <QFileInfo>
 
 using namespace QCA;

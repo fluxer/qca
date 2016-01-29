@@ -21,7 +21,7 @@
 
 #include <QtCore/qplugin.h>
 
-#include <QTime>
+#include <QtCore/qdatetime.h>
 
 #include <qstringlist.h>
 #include <gcrypt.h>

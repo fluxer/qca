@@ -22,7 +22,7 @@
 #include <QtCrypto>
 #include <qcaprovider.h>
 #include <QDebug>
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 
 extern "C"
 {

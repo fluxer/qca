@@ -25,6 +25,10 @@
 
 #include <QtCrypto>
 #include <QtTest/QtTest>
+#ifdef QT_KATIE
+#include <QTemporaryFile>
+#include <QDebug>
+#endif
 
 #ifdef QT_STATICPLUGIN
 #include "import_plugins.h"

@@ -18,7 +18,7 @@
  */
 
 #include <QtCrypto>
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 #include <QHash>
 #include <QFile>
 

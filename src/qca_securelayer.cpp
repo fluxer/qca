@@ -27,7 +27,7 @@
 
 #include <QPointer>
 #if QT_VERSION >= 0x050000
-#include <QMetaMethod>
+#include <QtCore/qmetaobject.h>
 #endif
 
 namespace QCA {

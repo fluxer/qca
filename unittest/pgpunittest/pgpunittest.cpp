@@ -25,6 +25,10 @@
 
 #include <QtCrypto>
 #include <QtTest/QtTest>
+#ifdef QT_KATIE
+#include <QDebug>
+#include <QDir>
+#endif
 
 #include <stdlib.h>
 

@@ -21,8 +21,8 @@
 #include <QtCrypto>
 #include <qcaprovider.h>
 #include <QDebug>
-#include <QTime>
-#include <QtPlugin>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qplugin.h>
 
 #include <openssl/evp.h>
 #include <openssl/hmac.h>

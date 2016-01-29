@@ -28,7 +28,7 @@
 #include <QByteArray>
 
 #ifdef GPG_PROFILE
-#include <QTime>
+#include <QtCore/qdatetime.h>
 #endif
 
 namespace gpgQCAPlugin {

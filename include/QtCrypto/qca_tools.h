@@ -37,7 +37,7 @@
 #define QCA_TOOLS_H
 
 #include <QSharedData>
-#include <QSharedDataPointer>
+#include <QtCore/qshareddata.h>
 #include <QMetaType>
 #include "qca_export.h"
 

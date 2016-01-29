@@ -20,7 +20,7 @@
 
 #include <QtCrypto>
 #include <qcaprovider.h>
-#include <QtPlugin>
+#include <QtCore/qplugin.h>
 #include <QMutex>
 #include <QLibrary>
 #include <QTimer>
