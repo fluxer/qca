@@ -25,8 +25,8 @@
 #include <QtCore/qabstractitemmodel.h>
 #include <QtCore/qshareddata.h>
 
-class QString;
-class QStringList;
+#include <QString>
+#include <QStringList>
 
 namespace QCA
 {

@@ -41,9 +41,9 @@
 #include <QMetaType>
 #include "qca_export.h"
 
-class QString;
-class QByteArray;
-class QTextStream;
+#include <QString>
+#include <QByteArray>
+#include <QTextStream>
 
 /**
    Allocate a block of memory from the secure memory pool.

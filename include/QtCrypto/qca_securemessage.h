@@ -38,7 +38,7 @@
 #include "qca_publickey.h"
 #include "qca_cert.h"
 
-class QDateTime;
+#include <QDateTime>
 
 namespace QCA {
 
