@@ -28,7 +28,7 @@
 #include <QByteArray>
 
 #ifdef GPG_PROFILE
-#include <QtCore/qdatetime.h>
+#include <QTime>
 #endif
 
 namespace gpgQCAPlugin {
@@ -64,6 +64,7 @@ public:
 		QString signerId;
 		QDateTime timestamp;
 		GpgOp::VerifyResult verifyResult;
+		QString homeDir;
 
 		Output() : success(false), errorCode(GpgOp::ErrorUnknown), wasSigned(false) {}
 	};
@@ -118,6 +119,7 @@ private:
 	bool need_submitPassphrase, need_cardOkay;
 	QString diagnosticText;
 	QCA::SafeTimer dtextTimer;
+	bool utf8Output;
 
 #ifdef GPG_PROFILE
 	QTime timer;

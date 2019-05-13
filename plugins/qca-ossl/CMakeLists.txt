@@ -25,6 +25,27 @@ if(OPENSSL_FOUND)
     message(WARNING "qca-ossl will be compiled without AES CTR mode encryption support")
   endif(HAVE_OPENSSL_AES_CTR)
 
+  check_function_exists(EVP_aes_128_gcm HAVE_OPENSSL_AES_GCM)
+  if(HAVE_OPENSSL_AES_GCM)
+    add_definitions(-DHAVE_OPENSSL_AES_GCM)
+  else()
+    message(WARNING "qca-ossl will be compiled without AES GCM mode encryption support")
+  endif()
+
+  check_function_exists(EVP_aes_128_ccm HAVE_OPENSSL_AES_CCM)
+  if(HAVE_OPENSSL_AES_CCM)
+    add_definitions(-DHAVE_OPENSSL_AES_CCM)
+  else()
+    message(WARNING "qca-ossl will be compiled without AES CCM mode encryption support")
+  endif()
+
+  check_function_exists(EVP_sha HAVE_OPENSSL_SHA0)
+  if(HAVE_OPENSSL_SHA0)
+    add_definitions(-DHAVE_OPENSSL_SHA0)
+  else(HAVE_OPENSSL_SHA0)
+    message(WARNING "qca-ossl will be compiled without SHA-0 digest algorithm support")
+  endif(HAVE_OPENSSL_SHA0)
+
   set(QCA_OSSL_SOURCES qca-ossl.cpp)
 
   my_automoc( QCA_OSSL_SOURCES )
@@ -35,28 +56,16 @@ if(OPENSSL_FOUND)
     set_property(TARGET qca-ossl PROPERTY SUFFIX ".dylib")
   endif()
 
-  include_directories(${OPENSSL_INCLUDE_DIR})
   target_link_libraries(qca-ossl ${QT_QTCORE_LIBRARY})
   target_link_libraries(qca-ossl ${QCA_LIB_NAME})
-  target_link_libraries(qca-ossl ${OPENSSL_LIBRARIES})
-
-  if(APPLE)
-    target_link_libraries(qca-ossl crypto)
-  endif(APPLE)
-
-  if(WIN32)
-    add_definitions(-DOSSL_097)
-    target_link_libraries(qca-ossl gdi32)
-    target_link_libraries(qca-ossl wsock32)
-    target_link_libraries(qca-ossl ${OPENSSL_EAY_LIBRARIES})
-  endif(WIN32)
+  target_link_libraries(qca-ossl OpenSSL::SSL OpenSSL::Crypto)
 
   if(NOT DEVELOPER_MODE)
     install(TARGETS qca-ossl
             LIBRARY DESTINATION "${QCA_CRYPTO_INSTALL_DIR}"
             ARCHIVE DESTINATION "${QCA_CRYPTO_INSTALL_DIR}"
             RUNTIME DESTINATION "${QCA_CRYPTO_INSTALL_DIR}")
-  
+
     install_pdb(qca-ossl ${QCA_CRYPTO_INSTALL_DIR})
   endif()
 

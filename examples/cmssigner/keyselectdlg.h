@@ -24,7 +24,7 @@
 
 #include <QDialog>
 
-#include <QPixmap>
+class QPixmap;
 
 namespace QCA
 {

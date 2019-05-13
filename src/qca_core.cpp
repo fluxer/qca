@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2003-2008  Justin Karneges <justin@affinix.com>
  * Copyright (C) 2004,2005  Brad Hards <bradh@frogmouth.net>
+ * Copyright (C) 2014-2016  Ivan Romanov <drizt@land.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,7 +33,7 @@
 
 #include <QMutex>
 #include <QSettings>
-#include <QtCore/qvariant.h>
+#include <QVariantMap>
 #include <QWaitCondition>
 #include <QDir>
 
@@ -481,6 +482,8 @@ QStringList pluginPaths()
 #ifndef DEVELOPER_MODE
 	paths.removeDuplicates();
 #endif
+	// No empty strings
+	paths.removeAll(QString());
 	return paths;
 }
 
@@ -808,6 +811,16 @@ QString arrayToHex(const QByteArray &a)
 QByteArray hexToArray(const QString &str)
 {
 	return Hex().stringToArray(str).toByteArray();
+}
+
+QString arrayToBase64(const QByteArray &a)
+{
+	return Base64().arrayToString(a);
+}
+
+QByteArray base64ToArray(const QString &base64String)
+{
+	return Base64().stringToArray(base64String).toByteArray();
 }
 
 static Provider *getProviderForType(const QString &type, const QString &provider)
@@ -1504,6 +1517,28 @@ InitializationVector::InitializationVector(const SecureArray &a)
 }
 
 InitializationVector::InitializationVector(const QByteArray &a)
+{
+	set(SecureArray(a));
+}
+
+//----------------------------------------------------------------------------
+// AuthTag
+//----------------------------------------------------------------------------
+AuthTag::AuthTag()
+{
+}
+
+AuthTag::AuthTag(int size)
+{
+	resize(size);
+}
+
+AuthTag::AuthTag(const SecureArray &a)
+{
+	set(a);
+}
+
+AuthTag::AuthTag(const QByteArray &a)
 {
 	set(SecureArray(a));
 }

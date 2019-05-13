@@ -46,7 +46,7 @@ SET( moc_SOURCES
 	qca_securelayer.cpp
 	qca_securemessage.cpp
 	support/qpipe.cpp
-	support/console.cpp 
+	support/console.cpp
 	support/synchronizer.cpp
 	support/dirwatch.cpp
 	support/syncthread.cpp
@@ -145,11 +145,18 @@ TARGET_LINK_LIBRARIES(${QCA_LIB_NAME} ${QT_QTCORE_LIBRARY})
 
 if(WIN32)
 	TARGET_LINK_LIBRARIES(${QCA_LIB_NAME} crypt32 ws2_32)
-endif(WIN32)	
+endif(WIN32)
 
 if(APPLE)
-   set(COREFOUNDATION_LIBRARY_SECURITY "-framework Security")
-   TARGET_LINK_LIBRARIES(${QCA_LIB_NAME} ${COREFOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY_SECURITY})
+  set(COREFOUNDATION_LIBRARY "-framework CoreFoundation")
+  set(COREFOUNDATION_LIBRARY_SECURITY "-framework Security")
+  TARGET_LINK_LIBRARIES(${QCA_LIB_NAME} ${COREFOUNDATION_LIBRARY} ${COREFOUNDATION_LIBRARY_SECURITY})
+
+  if(OSX_FRAMEWORK AND NOT USE_RELATIVE_PATHS)
+    set_target_properties(${QCA_LIB_NAME} PROPERTIES
+                          INSTALL_NAME_DIR "${QCA_LIBRARY_INSTALL_DIR}"
+    )
+  endif()
 endif(APPLE)
 
 if(NOT ANDROID)
@@ -167,16 +174,16 @@ set_target_properties(${QCA_LIB_NAME} PROPERTIES
                       )
 
 if(NOT DEVELOPER_MODE)
-  install(TARGETS ${QCA_LIB_NAME}
-          EXPORT ${QCA_CONFIG_NAME_BASE}Targets
+  # Do not split 'PUBLIC_HEADER ...' line. It means install headers to folder
+  # and set this folder as -I flag for imported target.
+  # Also EXPORT doesn't actually install any files. It only created a new target.
+  install(TARGETS ${QCA_LIB_NAME} EXPORT ${QCA_CONFIG_NAME_BASE}Targets
           LIBRARY DESTINATION "${QCA_LIBRARY_INSTALL_DIR}"
           RUNTIME DESTINATION "${QCA_BINARY_INSTALL_DIR}"
           ARCHIVE DESTINATION "${QCA_LIBRARY_INSTALL_DIR}"
           FRAMEWORK DESTINATION "${QCA_LIBRARY_INSTALL_DIR}"
-          PUBLIC_HEADER DESTINATION "${QCA_INCLUDE_INSTALL_DIR}/QtCrypto"
-          INCLUDES DESTINATION "${QCA_INCLUDE_INSTALL_DIR}/QtCrypto"
-          )
-
+          PUBLIC_HEADER DESTINATION "${QCA_FULL_INCLUDE_INSTALL_DIR}" INCLUDES DESTINATION "${QCA_FULL_INCLUDE_INSTALL_DIR}"
+  )
   install_pdb(${QCA_LIB_NAME} ${QCA_BINARY_INSTALL_DIR})
 endif()
 

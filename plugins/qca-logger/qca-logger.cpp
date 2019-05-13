@@ -19,7 +19,7 @@
 
 #include <QtCrypto>
 #include <qcaprovider.h>
-#include <QtCore/qplugin.h>
+#include <QtPlugin>
 #include <QTextStream>
 #include <QFile>
 

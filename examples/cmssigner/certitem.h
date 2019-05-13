@@ -22,11 +22,11 @@
 #ifndef CERTITEM_H
 #define CERTITEM_H
 
-#include <QtCore/qabstractitemmodel.h>
-#include <QtCore/qshareddata.h>
+#include <QAbstractListModel>
+#include <QSharedDataPointer>
 
-#include <QString>
-#include <QStringList>
+class QString;
+class QStringList;
 
 namespace QCA
 {

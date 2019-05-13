@@ -25,8 +25,8 @@
 #include "qca_export.h"
 #include <QObject>
 
-#include <QEvent>
-#include <QTimerEvent>
+class QEvent;
+class QTimerEvent;
 
 namespace QCA {
 

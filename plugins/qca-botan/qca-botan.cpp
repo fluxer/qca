@@ -18,18 +18,26 @@
  *
  */
 #include <QtCrypto>
-#include <QtCore/qdatetime.h>
-#include <QtCore/qplugin.h>
+#include <QTime>
+#include <QtPlugin>
 
 #include <qstringlist.h>
 
-#include <botan/botan.h>
 #include <botan/hmac.h>
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-#include <botan/s2k.h>
-#endif
-#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(1,8,0)
+#include <botan/version.h>
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
+#include <botan/botan.h>
 #include <botan/algo_factory.h>
+#else
+#include <botan/auto_rng.h>
+#include <botan/block_cipher.h>
+#include <botan/filters.h>
+#include <botan/hash.h>
+#include <botan/pbkdf.h>
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(2,0,0)
+#include <botan/hkdf.h>
+#endif
+#include <botan/stream_cipher.h>
 #endif
 
 #include <stdlib.h>
@@ -51,14 +59,8 @@ public:
     QCA::SecureArray nextBytes(int size)
     {
         QCA::SecureArray buf(size);
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,5,0)
-	Botan::Global_RNG::randomize( (Botan::byte*)buf.data(), buf.size(), Botan::SessionKey );
-#elif BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,7,6)
-	Botan::Global_RNG::randomize( (Botan::byte*)buf.data(), buf.size() );
-#else
 	Botan::AutoSeeded_RNG rng;
 	rng.randomize(reinterpret_cast<Botan::byte*>(buf.data()), buf.size());
-#endif
 	return buf;
     }
 };
@@ -70,7 +72,11 @@ class BotanHashContext : public QCA::HashContext
 public:
     BotanHashContext( const QString &hashName, QCA::Provider *p, const QString &type) : QCA::HashContext(p, type)
     {
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
 	m_hashObj = Botan::get_hash(hashName.toStdString());
+#else
+	m_hashObj = Botan::HashFunction::create(hashName.toStdString()).release();
+#endif
     }
 
     ~BotanHashContext()
@@ -95,11 +101,7 @@ public:
 
     QCA::MemoryRegion final()
     {
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-        QCA::SecureArray a( m_hashObj->OUTPUT_LENGTH );
-#else
 	QCA::SecureArray a( m_hashObj->output_length() );
-#endif
 	m_hashObj->final( (Botan::byte *)a.data() );
 	return a;
     }
@@ -115,10 +117,10 @@ class BotanHMACContext : public QCA::MACContext
 public:
     BotanHMACContext( const QString &hashName, QCA::Provider *p, const QString &type) : QCA::MACContext(p, type)
     {
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,8,0)
-	m_hashObj = new Botan::HMAC(hashName.toStdString());
-#else
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
 	m_hashObj = new Botan::HMAC(Botan::global_state().algorithm_factory().make_hash_function(hashName.toStdString()));
+#else
+	m_hashObj = new Botan::HMAC(Botan::HashFunction::create_or_throw(hashName.toStdString()).release());
 #endif
 	if (0 == m_hashObj) {
 	    std::cout << "null context object" << std::endl;
@@ -161,11 +163,7 @@ public:
 
     void final( QCA::MemoryRegion *out)
     {
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-	QCA::SecureArray sa( m_hashObj->OUTPUT_LENGTH, 0 );
-#else
 	QCA::SecureArray sa( m_hashObj->output_length(), 0 );
-#endif
 	m_hashObj->final( (Botan::byte *)sa.data() );
 	*out = sa;
     }
@@ -197,15 +195,8 @@ public:
     QCA::SymmetricKey makeKey(const QCA::SecureArray &secret, const QCA::InitializationVector &salt,
 			      unsigned int keyLength, unsigned int iterationCount)
     {
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-	m_s2k->set_iterations(iterationCount);
-	m_s2k->change_salt((const Botan::byte*)salt.data(), salt.size());
-	std::string secretString(secret.data(), secret.size() );
-	Botan::OctetString key = m_s2k->derive_key(keyLength, secretString);
-#else
 	std::string secretString(secret.data(), secret.size() );
 	Botan::OctetString key = m_s2k->derive_key(keyLength, secretString, (const Botan::byte*)salt.data(), salt.size(), iterationCount);
-#endif
         QCA::SecureArray retval(QByteArray((const char*)key.begin(), key.length()));
 	return QCA::SymmetricKey(retval);
     }
@@ -222,15 +213,6 @@ public:
 		std::string secretString(secret.data(), secret.size() );
 
 		*iterationCount = 0;
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-		m_s2k->set_iterations(1);
-		m_s2k->change_salt((const Botan::byte*)salt.data(), salt.size());
-		timer.start();
-		while (timer.elapsed() < msecInterval) {
-			key = m_s2k->derive_key(keyLength, secretString);
-			++(*iterationCount);
-		}
-#else
 		timer.start();
 		while (timer.elapsed() < msecInterval) {
 			key = m_s2k->derive_key(keyLength,
@@ -240,13 +222,52 @@ public:
 									1);
 			++(*iterationCount);
 		}
-#endif
 		return makeKey(secret, salt, keyLength, *iterationCount);
 	}
 
 protected:
     Botan::S2K* m_s2k;
 };
+
+//-----------------------------------------------------------
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(2,0,0)
+class BotanHKDFContext: public QCA::HKDFContext
+{
+public:
+    BotanHKDFContext(const QString &hashName, QCA::Provider *p, const QString &type) : QCA::HKDFContext(p, type)
+    {
+	Botan::HMAC *hashObj;
+	hashObj = new Botan::HMAC(Botan::HashFunction::create_or_throw(hashName.toStdString()).release());
+	m_hkdf = new Botan::HKDF(hashObj);
+    }
+
+    ~BotanHKDFContext()
+    {
+	delete m_hkdf;
+    }
+
+    Context *clone() const
+    {
+	return new BotanHKDFContext( *this );
+    }
+
+    QCA::SymmetricKey makeKey(const QCA::SecureArray &secret, const QCA::InitializationVector &salt,
+			      const QCA::InitializationVector &info, unsigned int keyLength)
+    {
+	std::string secretString(secret.data(), secret.size());
+	Botan::secure_vector<uint8_t> key(keyLength);
+	m_hkdf->kdf(key.data(), keyLength,
+		    reinterpret_cast<const Botan::byte*>(secret.data()), secret.size(),
+		    reinterpret_cast<const Botan::byte*>(salt.data()), salt.size(),
+		    reinterpret_cast<const Botan::byte*>(info.data()), info.size());
+	QCA::SecureArray retval(QByteArray::fromRawData(reinterpret_cast<const char*>(key.data()), key.size()));
+	return QCA::SymmetricKey(retval);
+    }
+
+protected:
+    Botan::HKDF* m_hkdf;
+};
+#endif
 
 
 //-----------------------------------------------------------
@@ -263,8 +284,10 @@ public:
 
     void setup(QCA::Direction dir,
                const QCA::SymmetricKey &key,
-               const QCA::InitializationVector &iv)
+               const QCA::InitializationVector &iv,
+               const QCA::AuthTag &tag)
     {
+	Q_UNUSED(tag);
 	try {
 	m_dir = dir;
 	Botan::SymmetricKey keyCopy((Botan::byte*)key.data(), key.size());
@@ -302,7 +325,20 @@ public:
 
     int blockSize() const
     {
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
 	return Botan::block_size_of(m_algoName);
+#else
+	if(const std::unique_ptr<Botan::BlockCipher> bc = Botan::BlockCipher::create(m_algoName))
+	    return bc->block_size();
+        
+	throw Botan::Algorithm_Not_Found(m_algoName);
+#endif
+    }
+
+    QCA::AuthTag tag() const
+    {
+    // For future implementation
+	return QCA::AuthTag();
     }
 
     bool update(const QCA::SecureArray &in, QCA::SecureArray *out)
@@ -329,23 +365,31 @@ public:
 
     QCA::KeyLength keyLength() const
     {
-#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(1,9,0)
-	return QCA::KeyLength( Botan::min_keylength_of(m_algoName),
-			       Botan::max_keylength_of(m_algoName),
-			       Botan::keylength_multiple_of(m_algoName) );
-#else
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
         Botan::Algorithm_Factory &af = Botan::global_state().algorithm_factory();
+#endif
         Botan::Key_Length_Specification kls(0);
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
         if(const Botan::BlockCipher *bc = af.prototype_block_cipher(m_algoName))
+#else
+        if(const std::unique_ptr<Botan::BlockCipher> bc = Botan::BlockCipher::create(m_algoName))
+#endif
             kls = bc->key_spec();
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
         else if(const Botan::StreamCipher *sc = af.prototype_stream_cipher(m_algoName))
+#else
+        else if(const std::unique_ptr<Botan::StreamCipher> sc = Botan::StreamCipher::create(m_algoName))
+#endif
             kls = sc->key_spec();
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
         else if(const Botan::MessageAuthenticationCode *mac = af.prototype_mac(m_algoName))
+#else
+        else if(const std::unique_ptr<Botan::MessageAuthenticationCode> mac = Botan::MessageAuthenticationCode::create(m_algoName))
+#endif
             kls = mac->key_spec();
         return QCA::KeyLength( kls.minimum_keylength(),
                                kls.maximum_keylength(),
                                kls.keylength_multiple() );
-#endif
     }
 
 
@@ -371,7 +415,9 @@ class botanProvider : public QCA::Provider
 public:
     void init()
     {
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
 	m_init = new Botan::LibraryInitializer;
+#endif
     }
 
     ~botanProvider()
@@ -413,6 +459,9 @@ public:
 	list += "pbkdf1(sha1)";
 	list += "pbkdf1(md2)";
 	list += "pbkdf2(sha1)";
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(2,0,0)
+	list += "hkdf(sha256)";
+#endif
 	list += "aes128-ecb";
 	list += "aes128-cbc";
 	list += "aes128-cfb";
@@ -478,6 +527,10 @@ public:
 	    return new BotanPBKDFContext( QString("PBKDF1(MD2)"), this, type );
 	else if ( type == "pbkdf2(sha1)" )
 	    return new BotanPBKDFContext( QString("PBKDF2(SHA-1)"), this, type );
+#if BOTAN_VERSION_CODE >= BOTAN_VERSION_CODE_FOR(2,0,0)
+	else if ( type == "hkdf(sha256)" )
+	    return new BotanHKDFContext( QString("SHA-256"), this, type );
+#endif
 	else if ( type == "aes128-ecb" )
 	    return new BotanCipherContext( QString("AES-128"), QString("ECB"), QString("NoPadding"), this, type );
 	else if ( type == "aes128-cbc" )
@@ -530,7 +583,9 @@ public:
 	    return 0;
     }
 private:
+#if BOTAN_VERSION_CODE < BOTAN_VERSION_CODE_FOR(2,0,0)
     Botan::LibraryInitializer *m_init;
+#endif
 
 };
 

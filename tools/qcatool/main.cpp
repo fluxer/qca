@@ -1306,7 +1306,7 @@ static bool string_is_int(const QString &in)
 
 static bool variant_is_bool(const QVariant &in)
 {
-#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
+#if QT_VERSION >= 0x050000
 	if(in.canConvert<QString>() && string_is_bool(in.toString()))
 #else
 	if(qVariantCanConvert<QString>(in) && string_is_bool(in.toString()))
@@ -1317,7 +1317,7 @@ static bool variant_is_bool(const QVariant &in)
 
 static bool variant_is_int(const QVariant &in)
 {
-#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
+#if QT_VERSION >= 0x050000
 	if(in.canConvert<QString>() && string_is_int(in.toString()))
 #else
 	if(qVariantCanConvert<QString>(in) && string_is_int(in.toString()))
@@ -1431,7 +1431,7 @@ static QVariantMap provider_config_edit_generic(const QVariantMap &in)
 			newval = prompt_for_bool(QString("bool   ") + prompt, val.toBool());
 		else if(variant_is_int(val))
 			newval = prompt_for_int(QString("int    ") + prompt, val.toInt());
-#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
+#if QT_VERSION >= 0x050000
 		else if(val.canConvert<QString>())
 #else
 		else if(qVariantCanConvert<QString>(val))
@@ -4247,7 +4247,7 @@ int main(int argc, char **argv)
 					// detached signature?
 					if(plain.startsWith("-----BEGIN PGP SIGNATURE-----"))
 					{
-						QString footer = "-----END PGP SIGNATURE-----\n";
+						QByteArray footer = "-----END PGP SIGNATURE-----\n";
 						int n = plain.indexOf(footer);
 						if(n == -1)
 						{

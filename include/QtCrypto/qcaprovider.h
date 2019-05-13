@@ -234,8 +234,9 @@ public:
 	   \param dir the direction for the cipher (encryption/decryption)
 	   \param key the symmetric key to use for the cipher
 	   \param iv the initialization vector to use for the cipher (not used in ECB mode)
+	   \param tag the AuthTag to use (only for GCM and CCM modes)
 	*/
-	virtual void setup(Direction dir, const SymmetricKey &key, const InitializationVector &iv) = 0;
+	virtual void setup(Direction dir, const SymmetricKey &key, const InitializationVector &iv, const AuthTag &tag) = 0;
 
 	/**
 	   Returns the KeyLength for this cipher
@@ -246,6 +247,11 @@ public:
 	   Returns the block size for this cipher
 	*/
 	virtual int blockSize() const = 0;
+
+	/**
+	   Returns the authentication tag for this cipher
+	*/
+	virtual AuthTag tag() const = 0;
 
 	/**
 	   Process a chunk of data.  Returns true if successful.
@@ -371,6 +377,40 @@ public:
 								 unsigned int keyLength,
 								 int msecInterval,
 								 unsigned int *iterationCount) = 0;
+};
+
+/**
+   \class HKDFContext qcaprovider.h QtCrypto
+
+   HKDF provider
+
+   \note This class is part of the provider plugin interface and should not
+   be used directly by applications.  You probably want HKDF instead.
+
+   \ingroup ProviderAPI
+*/
+class QCA_EXPORT HKDFContext : public BasicContext
+{
+	Q_OBJECT
+public:
+	/**
+	   Standard constructor
+
+	   \param p the provider associated with this context
+	   \param type the name of the HKDF provided by this context (including algorithm)
+	*/
+	HKDFContext(Provider *p, const QString &type) : BasicContext(p, type) {}
+
+	/**
+	   Create a key and return it
+
+	   \param secret the secret part (typically password)
+	   \param salt the salt / initialization vector
+	   \param info the info / initialization vector
+	   \param keyLength the length of the key to be produced
+	*/
+	virtual SymmetricKey makeKey(const SecureArray &secret, const InitializationVector &salt,
+								 const InitializationVector &info, unsigned int keyLength) = 0;
 };
 
 /**

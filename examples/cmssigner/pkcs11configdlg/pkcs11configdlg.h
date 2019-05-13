@@ -23,7 +23,7 @@
 #define PKCS11CONFIGDLG_H
 
 #include <QDialog>
-#include <QtCore/qvariant.h>
+#include <QVariantMap>
 
 // support for the 'http://affinix.com/qca/forms/qca-pkcs11#1.0' provider form
 

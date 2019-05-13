@@ -282,7 +282,7 @@ public:
 
 	SecureArray readSecure(int bytes = -1)
 	{
-#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
+#if QT_VERSION >= 0x050000
 		return mycall(worker, "readSecure", QVariantList() << bytes).value<SecureArray>();
 #else
 		return qVariantValue<SecureArray>(mycall(worker, "readSecure", QVariantList() << bytes));
@@ -857,7 +857,7 @@ public:
 			return false;
 		}
 
-		if(c == '\b' || c == 0x7f)
+		if(c == '\b' || c.unicode() == 0x7f)
 		{
 			if(at > 0)
 			{

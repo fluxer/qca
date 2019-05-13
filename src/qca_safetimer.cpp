@@ -22,7 +22,7 @@
 #include "qca_safetimer.h"
 #include <QElapsedTimer>
 #include <qmath.h>
-#include <QtCore/qcoreevent.h>
+#include <QTimerEvent>
 
 // #define SAFETIMER_DEBUG
 

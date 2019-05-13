@@ -37,13 +37,13 @@
 #define QCA_TOOLS_H
 
 #include <QSharedData>
-#include <QtCore/qshareddata.h>
+#include <QSharedDataPointer>
 #include <QMetaType>
 #include "qca_export.h"
 
-#include <QString>
-#include <QByteArray>
-#include <QTextStream>
+class QString;
+class QByteArray;
+class QTextStream;
 
 /**
    Allocate a block of memory from the secure memory pool.

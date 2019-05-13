@@ -220,6 +220,7 @@ GpgAction::GpgAction(QObject *parent)
 	: QObject(parent)
 	, proc(this)
 	, dtextTimer(this)
+	, utf8Output(false)
 {
 	dtextTimer.setSingleShot(true);
 
@@ -302,12 +303,18 @@ void GpgAction::start()
 	}
 	case GpgOp::SecretKeyringFile:
 	{
+#ifndef Q_OS_WIN
+		args += "--display-charset=utf-8";
+#endif
 		args += "--list-secret-keys";
 		readText = true;
 		break;
 	}
 	case GpgOp::PublicKeyringFile:
 	{
+#ifndef Q_OS_WIN
+		args += "--display-charset=utf-8";
+#endif
 		args += "--list-public-keys";
 		readText = true;
 		break;
@@ -319,6 +326,7 @@ void GpgAction::start()
 		args += "--with-fingerprint";
 		args += "--with-fingerprint";
 		args += "--list-secret-keys";
+		utf8Output = true;
 		readText = true;
 		break;
 	}
@@ -329,6 +337,7 @@ void GpgAction::start()
 		args += "--with-fingerprint";
 		args += "--with-fingerprint";
 		args += "--list-public-keys";
+		utf8Output = true;
 		readText = true;
 		break;
 	}
@@ -760,14 +769,23 @@ void GpgAction::processResult(int code)
 
 	// put stdout and stderr into QStrings
 
-	// FIXME: on Windows gpg returns --with-colons in
-	// utf-8 charset but for -k or -K it uses
-	// console output charset (which may will be differs
-	// then system charse). Will be wait a resolving of
-	// QTBUG-13303 https://bugreports.qt-project.org/browse/QTBUG-13303
-	// After it need to make some changes.
-	QString outstr = QString::fromUtf8(buf_stdout);
-	QString errstr = QString::fromUtf8(buf_stderr);
+	QString outstr;
+	QString errstr;
+	
+#ifdef Q_OS_WIN
+	if (!utf8Output)
+	{
+		outstr = QString::fromLocal8Bit(buf_stdout);
+		errstr = QString::fromLocal8Bit(buf_stderr);
+	}
+	else
+	{
+#endif
+		outstr = QString::fromUtf8(buf_stdout);
+		errstr = QString::fromUtf8(buf_stderr);
+#ifdef Q_OS_WIN
+	}
+#endif
 
 	if(collectOutput)
 		appendDiagnosticText(QString("stdout: [%1]").arg(outstr));
@@ -784,7 +802,20 @@ void GpgAction::processResult(int code)
 	}
 	else if(code == 0)
 	{
-		if(input.op == GpgOp::SecretKeyringFile || input.op == GpgOp::PublicKeyringFile)
+		if(input.op == GpgOp::Check)
+		{
+			QStringList strList = outstr.split("\n");
+			foreach (const QString &str, strList)
+			{
+				if (!str.startsWith("Home: "))
+					continue;
+
+				output.homeDir = str.section(' ', 1);
+				break;
+			}
+			output.success = true;
+		}
+		else if(input.op == GpgOp::SecretKeyringFile || input.op == GpgOp::PublicKeyringFile)
 		{
 			if(findKeyringFilename(outstr, &output.keyringFile))
 				output.success = true;

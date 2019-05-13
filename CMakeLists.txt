@@ -8,16 +8,15 @@ endif(NOT CMAKE_INSTALL_PREFIX)
 
 project(qca)
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.4)
 
 set(QCA_LIB_MAJOR_VERSION "2")
-set(QCA_LIB_MINOR_VERSION "1")
+set(QCA_LIB_MINOR_VERSION "2")
 set(QCA_LIB_PATCH_VERSION "1")
 
-# Do not automatically link Qt executables to qtmain target on Windows.
-# QCA exucatables use console mode only. Not need to link against
-# qtmain.lib.
-cmake_policy(SET CMP0020 OLD)
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 OLD)
+endif()
 
 option(BUILD_TESTS "Create test" ON)
 option(BUILD_TOOLS "Compile mozcerts and qcatool" ON)
@@ -41,28 +40,26 @@ endif(NOT BUILD_PLUGINS)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" )
 
-option(KATIE_BUILD "Force building with Katie even if Qt4/Qt5 is found")
 option(QT4_BUILD "Force building with Qt4 even if Qt5 is found")
-if (KATIE_BUILD)
-  find_package(Katie QUIET)
-elseif (NOT QT4_BUILD)
+if (NOT QT4_BUILD)
+  # Do not automatically link Qt executables to qtmain target on Windows.
+  # QCA exucatables use console mode only. Not need to link against qtmain.lib.
+  set(Qt5_NO_LINK_QTMAIN ON)
   find_package(Qt5Core QUIET)
   mark_as_advanced(Qt5Core_DIR)
 endif()
 
 include(QcaMacro)
 
-if (Katie_FOUND)
-  message(STATUS "Building with Katie support")
-  setup_katie_dirs()
-  set(QCA_QT_PC_VERSION "KtCore")
-  set(QCA_SUFFIX "katie")
-  include_directories(${QT_INCLUDES})
-elseif (Qt5Core_FOUND)
+if (Qt5Core_FOUND)
   message(STATUS "Building with Qt5 support")
   # Got from ECM
   # Distros have no ECM. So I just copied required cmake modules.
-  find_package(Qt5Transitional REQUIRED Core Network)
+  if(BUILD_TESTS)
+    find_package(Qt5Transitional REQUIRED Core Network)
+  else()
+    find_package(Qt5Transitional REQUIRED Core)
+  endif()
   include(ECMQt4To5Porting)
 
   include(GNUInstallDirs)
@@ -72,6 +69,9 @@ elseif (Qt5Core_FOUND)
 else()
   set(QT_MIN_VERSION "4.7.0")
   set(QT_USE_IMPORTED_TARGETS ON)
+  # Do not automatically link Qt executables to qtmain target on Windows.
+  # QCA exucatables use console mode only. Not need to link against qtmain.lib.
+  set(QT4_NO_LINK_QTMAIN ON)
   if(BUILD_TESTS)
     find_package(Qt4 REQUIRED QtCore QtNetwork QtTest)
   else(BUILD_TESTS)
@@ -124,15 +124,15 @@ endif (WIN32)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
    if (CMAKE_SYSTEM_NAME MATCHES Linux)
-     add_definitions (-D_BSD_SOURCE -D_DEFAULT_SOURCE)
+     add_definitions (-D_DEFAULT_SOURCE)
      # on arm -Wcast-align throws many internal qt warning
      if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wcast-align")
        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-align")
      endif()
 
-     set ( CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} -Wno-long-long -ansi -Wundef -Werror-implicit-function-declaration -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -Wmissing-format-attribute -fno-common")
-     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-check-new -fno-common")
+     set ( CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} -Wno-long-long -Wundef -Werror-implicit-function-declaration -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -Wmissing-format-attribute -fno-common")
+     set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -Wundef -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fno-check-new -fno-common")
    endif (CMAKE_SYSTEM_NAME MATCHES Linux)
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
@@ -209,6 +209,12 @@ set(PKGCONFIG_INSTALL_PREFIX "${QCA_LIBRARY_INSTALL_DIR}/pkgconfig" CACHE PATH "
 
 normalize_path(QCA_PREFIX_INSTALL_DIR)
 
+if(OSX_FRAMEWORK)
+  set(QCA_FULL_INCLUDE_INSTALL_DIR "${QCA_LIBRARY_INSTALL_DIR}/${QCA_LIB_NAME}.framework/Headers")
+else()
+  set(QCA_FULL_INCLUDE_INSTALL_DIR "${QCA_INCLUDE_INSTALL_DIR}/QtCrypto")
+endif()
+
 # check for oportunity to use relative paths
 option(USE_RELATIVE_PATHS "Try to make relocatable package")
 
@@ -234,7 +240,7 @@ endforeach()
 
 if(NOT WIN32)
   if(OSX_FRAMEWORK)
-    set(PKGCONFIG_CFLAGS "-F\${libdir} -I\${libdir}/${QCA_LIB_NAME}.framework/Headers")
+    set(PKGCONFIG_CFLAGS "-F\${libdir} -I\${includedir}")
     set(PKGCONFIG_LIBS "-F\${libdir} -framework ${QCA_LIB_NAME}")
   else()
     set(PKGCONFIG_CFLAGS "-I\${includedir}")
@@ -281,8 +287,6 @@ Plugins=${CMAKE_BINARY_DIR}/lib/${QCA_LIB_NAME}
 endif()
 
 if (APPLE)
-   find_package(CoreFoundation REQUIRED)
-   set(CMAKE_INSTALL_NAME_DIR ${QCA_LIBRARY_INSTALL_DIR})
    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif (APPLE)
 
@@ -330,7 +334,7 @@ add_definitions( -DQCA_SYSTEMSTORE_PATH="${qca_CERTSTORE}" )
 
 set( private_HEADERS ${qca_INCLUDEDIR}/QtCrypto/qca_plugin.h ${qca_INCLUDEDIR}/QtCrypto/qca_systemstore.h )
 
-set( public_HEADERS 
+set( public_HEADERS
   ${qca_INCLUDEDIR}/QtCrypto/qca.h
   ${qca_INCLUDEDIR}/QtCrypto/qcaprovider.h
   ${qca_INCLUDEDIR}/QtCrypto/QtCrypto

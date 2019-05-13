@@ -40,7 +40,7 @@
 #include <QString>
 #include <QObject>
 #include <QVariant>
-#include <QtCore/qvariant.h>
+#include <QVariantList>
 #include <QStringList>
 #include <QList>
 #include <QMetaObject>

@@ -23,8 +23,8 @@
 #include <qplatformdefs.h>
 
 #include <QHash>
-#include <QtCore/qmutex.h>
-#include <QtCore/qplugin.h>
+#include <QMutexLocker>
+#include <QtPlugin>
 
 #include <pkcs11-helper-1.0/pkcs11h-token.h>
 #include <pkcs11-helper-1.0/pkcs11h-certificate.h>

@@ -2,6 +2,7 @@
  * qca_core.h - Qt Cryptographic Architecture
  * Copyright (C) 2003-2007  Justin Karneges <justin@affinix.com>
  * Copyright (C) 2004,2005  Brad Hards <bradh@frogmouth.net>
+ * Copyright (C) 2014-2016  Ivan Romanov <drizt@land.ru>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,7 +38,7 @@
 #include <QStringList>
 #include <QList>
 #include <QSharedData>
-#include <QtCore/qshareddata.h>
+#include <QSharedDataPointer>
 #include "qca_export.h"
 #include "qca_support.h"
 #include "qca_tools.h"
@@ -491,8 +492,8 @@ QCA_EXPORT Logger *logger();
 */
 #define QCA_logTextMessage(message, severity) \
 	do { \
-		register QCA::Logger::Severity s = severity; \
-		register QCA::Logger *l = QCA::logger (); \
+		QCA::Logger::Severity s = severity; \
+		QCA::Logger *l = QCA::logger (); \
 		if (s <= l->level ()) { \
 			l->logTextMessage (message, s); \
 		} \
@@ -510,8 +511,8 @@ QCA_EXPORT Logger *logger();
 */
 #define QCA_logBinaryMessage(blob, severity) \
 	do { \
-		register QCA::Logger::Severity s = severity; \
-		register QCA::Logger *l = QCA::logger (); \
+		QCA::Logger::Severity s = severity; \
+		QCA::Logger *l = QCA::logger (); \
 		if (s <= l->level ()) { \
 			l->logBinaryMessage (blob, s); \
 		} \
@@ -617,6 +618,32 @@ if (QCA::hexToArray(QString("62626262626262006262") ) == test )
    \return the equivalent QByteArray
 */
 QCA_EXPORT QByteArray hexToArray(const QString &hexString);
+
+/**
+   Convert a byte array to printable base64
+   representation.
+
+   This is a convenience function to convert an arbitrary
+   QByteArray to a printable representation.
+
+   \param array the array to be converted
+   \return a printable representation
+*/
+QCA_EXPORT QString arrayToBase64(const QByteArray &array);
+
+/**
+   Convert a QString containing a base64 representation
+   of a byte array into a QByteArray
+
+   This is a convenience function to convert a printable
+   representation into a QByteArray - effectively the inverse
+   of QCA::arrayToBase64.
+
+   \param base64String the string containing a printable
+   representation to be converted
+   \return the equivalent QByteArray
+*/
+QCA_EXPORT QByteArray base64ToArray(const QString &base64String);
 
 /**
    \class Initializer qca_core.h QtCrypto
@@ -1292,6 +1319,43 @@ public:
 	   \param a the byte array to copy
 	*/
 	InitializationVector(const QByteArray &a);
+};
+
+/**
+   \class AuthTag qca_core.h QtCrypto
+
+   Container for authentication tag
+
+   \ingroup UserAPI
+*/
+class QCA_EXPORT AuthTag : public SecureArray
+{
+public:
+	/**
+	   Construct an empty authentication tag
+	*/
+	AuthTag();
+
+	/**
+	   Construct an empty authentication tag of the specified size
+
+	   \param size the length of the authentication tag, in bytes
+	*/
+	AuthTag(int size);
+
+	/**
+	   Construct an authentication tag from a provided byte array
+
+	   \param a the byte array to copy
+	*/
+	AuthTag(const SecureArray &a);
+
+	/**
+	   Construct an authentication tag from a provided byte array
+
+	   \param a the byte array to copy
+	*/
+	AuthTag(const QByteArray &a);
 };
 
 /**
