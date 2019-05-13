@@ -23,6 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "filewatchunittest.h"
+#include <QTemporaryFile>
 
 #ifdef QT_STATICPLUGIN
 #include "import_plugins.h"

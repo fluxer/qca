@@ -25,6 +25,8 @@
 
 #include <QtCrypto>
 #include <QtTest/QtTest>
+#include <QDebug>
+#include <QTemporaryFile>
 
 #ifdef QT_STATICPLUGIN
 #include "import_plugins.h"

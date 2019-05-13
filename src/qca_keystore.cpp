@@ -316,7 +316,7 @@ public slots:
 		if(at == -1)
 			return QString();
 		Item &i = items[at];
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 		if(v.canConvert<KeyBundle>())
 			return i.owner->writeEntry(i.storeContextId, v.value<KeyBundle>());
 		else if(v.canConvert<Certificate>())
@@ -802,7 +802,7 @@ bool KeyStoreEntry::ensureAvailable()
 {
 	QString storeId = this->storeId();
 	QString entryId = id();
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 	KeyStoreEntryContext *c = (KeyStoreEntryContext *)trackercall("entry", QVariantList() << storeId << entryId).value<void*>();
 #else
 	KeyStoreEntryContext *c = (KeyStoreEntryContext *)qVariantValue<void*>(trackercall("entry", QVariantList() << storeId << entryId));
@@ -1000,7 +1000,7 @@ protected:
 	virtual void run()
 	{
 		if(type == EntryList)
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 			entryList = trackercall("entryList", QVariantList() << trackerId).value< QList<KeyStoreEntry> >();
 #else
 			entryList = qVariantValue< QList<KeyStoreEntry> >(trackercall("entryList", QVariantList() << trackerId));
@@ -1243,7 +1243,7 @@ QList<KeyStoreEntry> KeyStore::entryList() const
 
 	if(d->trackerId == -1)
 		return QList<KeyStoreEntry>();
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 	return trackercall("entryList", QVariantList() << d->trackerId).value< QList<KeyStoreEntry> >();
 #else
 	return qVariantValue< QList<KeyStoreEntry> >(trackercall("entryList", QVariantList() << d->trackerId));
@@ -1255,7 +1255,7 @@ bool KeyStore::holdsTrustedCertificates() const
 	QList<KeyStoreEntry::Type> list;
 	if(d->trackerId == -1)
 		return false;
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 	list = trackercall("entryTypes", QVariantList() << d->trackerId).value< QList<KeyStoreEntry::Type> >();
 #else
 	list = qVariantValue< QList<KeyStoreEntry::Type> >(trackercall("entryTypes", QVariantList() << d->trackerId));
@@ -1270,7 +1270,7 @@ bool KeyStore::holdsIdentities() const
 	QList<KeyStoreEntry::Type> list;
 	if(d->trackerId == -1)
 		return false;
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 	list = trackercall("entryTypes", QVariantList() << d->trackerId).value< QList<KeyStoreEntry::Type> >();
 #else
 	list = qVariantValue< QList<KeyStoreEntry::Type> >(trackercall("entryTypes", QVariantList() << d->trackerId));
@@ -1285,7 +1285,7 @@ bool KeyStore::holdsPGPPublicKeys() const
 	QList<KeyStoreEntry::Type> list;
 	if(d->trackerId == -1)
 		return false;
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= 0x050000 || defined(QT_KATIE)
 	list = trackercall("entryTypes", QVariantList() << d->trackerId).value< QList<KeyStoreEntry::Type> >();
 #else
 	list = qVariantValue< QList<KeyStoreEntry::Type> >(trackercall("entryTypes", QVariantList() << d->trackerId));

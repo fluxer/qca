@@ -22,11 +22,10 @@
 #ifndef QCA_SAFETIMER_H
 #define QCA_SAFETIMER_H
 
-#include "qca_export.h"
 #include <QObject>
-
-class QEvent;
-class QTimerEvent;
+#include <QEvent>
+#include <QTimerEvent>
+#include "qca_export.h"
 
 namespace QCA {
 

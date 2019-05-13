@@ -1,5 +1,9 @@
-
-IF (Qt5Core_FOUND)
+IF (Katie_FOUND)
+  MACRO (SETUP_KATIE_DIRS)
+    set(QT_PREFIX_DIR ${QT_PREFIX_PATH})
+    set(QT_DATA_DIR ${QT_DATA_PATH})
+  ENDMACRO()
+ELSEIF (Qt5Core_FOUND)
   # FindQt4.cmake wasn't used, so define it here
   MACRO (QT4_GET_MOC_INC_DIRS _moc_INC_DIRS)
      SET(${_moc_INC_DIRS})

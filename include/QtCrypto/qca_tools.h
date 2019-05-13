@@ -39,11 +39,10 @@
 #include <QSharedData>
 #include <QSharedDataPointer>
 #include <QMetaType>
+#include <QString>
+#include <QByteArray>
+#include <QTextStream>
 #include "qca_export.h"
-
-class QString;
-class QByteArray;
-class QTextStream;
 
 /**
    Allocate a block of memory from the secure memory pool.

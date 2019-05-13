@@ -25,6 +25,8 @@
 
 #include <QtCrypto>
 #include <QtTest/QtTest>
+#include <QDebug>
+#include <QDir>
 
 #include <stdlib.h>
 

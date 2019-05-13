@@ -40,8 +40,11 @@ endif(NOT BUILD_PLUGINS)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules" )
 
+option(KATIE_BUILD "Force building with Katie even if Qt4/Qt5 is found")
 option(QT4_BUILD "Force building with Qt4 even if Qt5 is found")
-if (NOT QT4_BUILD)
+if (KATIE_BUILD)
+  find_package(Katie QUIET)
+elseif (NOT QT4_BUILD)
   # Do not automatically link Qt executables to qtmain target on Windows.
   # QCA exucatables use console mode only. Not need to link against qtmain.lib.
   set(Qt5_NO_LINK_QTMAIN ON)
@@ -51,7 +54,13 @@ endif()
 
 include(QcaMacro)
 
-if (Qt5Core_FOUND)
+if (Katie_FOUND)
+  message(STATUS "Building with Katie support")
+  setup_katie_dirs()
+  set(QCA_QT_PC_VERSION "KtCore")
+  set(QCA_SUFFIX "katie")
+  include_directories(${QT_INCLUDES})
+elseif (Qt5Core_FOUND)
   message(STATUS "Building with Qt5 support")
   # Got from ECM
   # Distros have no ECM. So I just copied required cmake modules.

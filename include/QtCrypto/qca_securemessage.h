@@ -34,11 +34,10 @@
 #define QCA_SECUREMESSAGE_H
 
 #include <QObject>
+#include <QDateTime>
 #include "qca_core.h"
 #include "qca_publickey.h"
 #include "qca_cert.h"
-
-class QDateTime;
 
 namespace QCA {
 
