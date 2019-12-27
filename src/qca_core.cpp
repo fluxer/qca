@@ -565,18 +565,25 @@ static bool configIsValid(const QVariantMap &config)
 
 static QVariantMap readConfig(const QString &name)
 {
-	QSettings settings("Affinix", "QCA2");
-	settings.beginGroup("ProviderConfig");
-	QStringList providerNames = settings.value("providerNames").toStringList();
+	QSettings settings("Affinix/QCA2", QSettings::NativeFormat);
+	QStringList providerNames = settings.value("ProviderConfig/providerNames").toStringList();
 	if(!providerNames.contains(name))
 		return QVariantMap();
 
+        QVariantMap map;
+#ifndef QT_KATIE
 	settings.beginGroup(name);
 	QStringList keys = settings.childKeys();
-	QVariantMap map;
 	foreach(const QString &key, keys)
 		map[key] = settings.value(key);
 	settings.endGroup();
+#else
+        foreach(const QString &key, settings.keys()) {
+            if (!key.startsWith("ProviderConfig/providerNames/" + name))
+                continue;
+            map[key] = settings.value(key);
+        }
+#endif
 
 	if(!configIsValid(map))
 		return QVariantMap();
@@ -585,30 +592,26 @@ static QVariantMap readConfig(const QString &name)
 
 static bool writeConfig(const QString &name, const QVariantMap &config, bool systemWide = false)
 {
-	QSettings settings(QSettings::NativeFormat, systemWide ? QSettings::SystemScope : QSettings::UserScope, "Affinix", "QCA2");
-	settings.beginGroup("ProviderConfig");
+        Q_UNUSED(systemWide);
+	QSettings settings("Affinix/QCA2", QSettings::NativeFormat);
 
 	// version
-	settings.setValue("version", 2);
+	settings.setValue("ProviderConfig/version", 2);
 
 	// add the entry if needed
-	QStringList providerNames = settings.value("providerNames").toStringList();
+	QStringList providerNames = settings.value("ProviderConfig/providerNames").toStringList();
 	if(!providerNames.contains(name))
 		providerNames += name;
-	settings.setValue("providerNames", providerNames);
+	settings.setValue("ProviderConfig/providerNames", providerNames);
 
-	settings.beginGroup(name);
 	QMapIterator<QString,QVariant> it(config);
 	while(it.hasNext())
 	{
 		it.next();
-		settings.setValue(it.key(), it.value());
+		settings.setValue("ProviderConfig/providerNames/" + name + "/" + it.key(), it.value());
 	}
-	settings.endGroup();
 
-	if(settings.status() == QSettings::NoError)
-		return true;
-	return false;
+	return (settings.status() == QSettings::NoError);
 }
 
 void setProviderConfig(const QString &name, const QVariantMap &config)
