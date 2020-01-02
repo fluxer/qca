@@ -47,8 +47,7 @@ static void dumpCertificateInfo( QCA::CertificateInfo info)
     // foreach() interates over each value in the list, and we dump
     // out each value. Note that is uncommon for a certificate to
     // actually contain multiple values for a single parameter.
-    QString organization;
-    foreach( organization, orgInfoList ) {
+    foreach(const QString &organization, orgInfoList ) {
 	std::cout << "    " << qPrintable(organization) << std::endl;
     }
 
@@ -130,8 +129,7 @@ int main(int argc, char** argv)
 
     std::cout << "Number of certificates: " << certlist.count() << std::endl;
 
-    QCA::Certificate cert;
-    foreach (cert, certlist) {
+    foreach (const QCA::Certificate &cert, certlist) {
 	std::cout << "Serial Number:";
 	// the serial number of the certificate is a QCA::BigInteger, but we can
 	// just convert it to a string, and then output it.
