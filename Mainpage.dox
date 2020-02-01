@@ -14,7 +14,7 @@
    application!
 
    %QCA should work everywhere %Qt does, including Windows/Unix/MacOSX. This
-   version of %QCA is for Qt4 or Qt5, and requires no Qt3 compatibility code.
+   version of %QCA is for Qt4 or Katie, and requires no Qt3 compatibility code.
 
    \section features Features
 
