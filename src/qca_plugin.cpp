@@ -317,6 +317,7 @@ void ProviderManager::scan()
 {
 	QMutexLocker locker(&providerMutex);
 
+#ifndef QT_KATIE
 	// check static first, but only once
 	if(!scanned_static)
 	{
@@ -359,6 +360,7 @@ void ProviderManager::scan()
 		}
 		scanned_static = true;
 	}
+#endif // QT_KATIE
 
 #ifndef QCA_NO_PLUGINS
 	if(qgetenv("QCA_NO_PLUGINS") == "1")
